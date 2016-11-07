@@ -7,10 +7,10 @@ mkdir -v ../binutils-build 	//建议在源码目录之外一个专门的编译�
 cd ../binutils-build		
 ../binutils-2.25/configure \
 --prefix=/tools \		//程序安装目录
---with-sysroot=$LFS \		//库搜索目录
---with-lib-path=/tools/lib \	//编译时汇编库搜索路径
+--with-sysroot=$LFS \		//目标系统所需库搜索目录
+--with-lib-path=/tools/lib \	//链接器所用库路径
 --target=$LFS_TGT \		//目标系统指定
---disable-nls \			//去掉国际化标准支持
+--disable-nls \			//只支持英文，去掉对别的语言的支持
 --disable-werror		//阻止编译器的警告中断编译过程
 make -j4
 //如果是在 x86_64 上编译，创建符号链接，以确保工具链的完整性
@@ -21,7 +21,7 @@ make install
 rm -rf $LFS/sources/binutils-build
 rm -rf $LFS/sources/binutils-2.25
 
-2.gcc-4.9.2(注意该gcc是交叉编译的GCC，必须要满足目标内核对于gcc版本的需求)
+2.gcc-4.9.2(注意该gcc是不含Glibc的，因此不支持包含对系统调用的编译,仅用于内核和bootloader等不需系统调用的编译)
 cd $LFS/sources
 tar -jxf gcc-4.9.2.tar.bz2
 cd gcc-4.9.2
@@ -31,7 +31,7 @@ tar -xf ../gmp-6.0.0a.tar.xz
 mv -v gmp-6.0.0 gmp
 tar -xf ../mpc-1.0.2.tar.gz
 mv -v mpc-1.0.2 mpc
-for file in \				//对关键系统库进行备份
+for file in \				//确保gcc使用的是刚才由Binutils编译出的/tools中的动态链接器
 	$(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
 	do
 	cp -uv $file{,.orig}
@@ -48,15 +48,15 @@ sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure	//GCC栈保护，�
 mkdir -v ../gcc-build
 cd ../gcc-build
 ../gcc-4.9.2/configure \
---target=$LFS_TGT \			//目标系统
+--target=$LFS_TGT \			//该gcc编译出的程序的运行环境指定
 --prefix=/tools \			//安装目录
---with-sysroot=$LFS \			//目标系统库目录
---with-newlib \				//将依赖库指定为以后安装
+--with-sysroot=$LFS \			//目标系统库搜索目录
+--with-newlib \				//系统调用库包括Glibc以及Newlib,指定为Newlib可以确保不用宿主系统的GLibc，保证编译出的gcc是干净的
 --without-headers \			//交叉编译工具不需要目标系统头文件支持，去掉
 --with-local-prefix=/tools \		//指定本地安装库为/tools
 --with-native-system-header-dir=/tools/include \	//生成库置于/tools/include
---disable-nls \				//去掉国际化标准支持
---disable-shared \			//关闭动态链接，避免和宿主机冲突
+--disable-nls \				//语言仅支持英语即可
+--disable-shared \			//关闭动态链接，避免搜索到宿主机的Glibc动态库造成的冲突
 --disable-multilib \			//x86_64系统不支持multilib
 --disable-decimal-float \
 --disable-threads \
@@ -68,7 +68,7 @@ cd ../gcc-build
 --disable-libssp \
 --disable-libvtv \
 --disable-libcilkrts \
---disable-libstdc++-v3 \		//以上特性在编译交叉编译工具时会导致失败，并且交叉编译工具也不要对于浮点数，线程以及其他的支持
+--disable-libstdc++-v3 \		//由于当前还没有编译系统库，而以上特性都需要libc的支持，因此去掉
 --enable-languages=c,c++		//只有C/C++会被构建
 make
 make install
@@ -80,7 +80,7 @@ cd $LFS/sources
 tar -Jxf linux-3.19.tar.xz
 cd linux-3.19
 make mrproper					
-make INSTALL_HDR_PATH=dest headers_install	//头文件提取，置于dest文件夹
+make INSTALL_HDR_PATH=dest headers_install	//系统头文件提取，置于dest文件夹
 cp -rv dest/include/* /tools/include
 rm -rf $LFS/sources/linux-3.19
 
@@ -99,11 +99,11 @@ mkdir -v ../glibc-build
 cd ../glibc-build
 ../glibc-2.21/configure \
 --prefix=/tools \					//安装目录
---host=$LFS_TGT \					//目标系统指定
+--host=$LFS_TGT \					//运行环境指定
 --build=$(../glibc-2.21/scripts/config.guess) \
 --disable-profile \
 --enable-kernel=2.6.32 \				//最低内核支持版本指定
---with-headers=/tools/include \				//指向刚才编译的API
+--with-headers=/tools/include \				//指向刚才编译的内核API
 libc_cv_forced_unwind=yes \				//之前编译的binutils需要Glibc建立之后才能用，因此此处需手动指明forced_Unwind可用(二者互相依赖）
 libc_cv_ctors_header=yes \
 libc_cv_c_cleanup=yes					//同Unwind
@@ -125,7 +125,7 @@ cd gcc-4.9.2
 mkdir -pv ../gcc-build
 cd ../gcc-build
 ../gcc-4.9.2/libstdc++-v3/configure \
---host=$LFS_TGT \			//指定编译器为刚才编译好的GCC
+--host=$LFS_TGT \			//指定运行时环境
 --prefix=/tools \			//安装路径
 --disable-multilib \			//x86_64不支持multilib
 --disable-shared \			//动态库支持关闭
@@ -138,7 +138,7 @@ make install
 rm -rf $LFS/sources/gcc-build
 rm -rf $LFS/sources/gcc-4.9.2
 
-6.Binutils_2(上次编译的是交叉工具的，这次是为目标系统编译的)
+6.Binutils_2(第二次编译使其不依赖于宿主机系统)
 cd $LFS/sources
 tar -jxf binutils-2.25.tar.bz2
 cd binutils-2.25
@@ -149,16 +149,16 @@ AR=$LFS_TGT-ar \
 RANLIB=$LFS_TGT-ranlib \
 ../binutils-2.25/configure \
 --prefix=/tools \			//安装目录
---disable-nls \				//去掉国际化标准支持
+--disable-nls \				//信息仅支持英语
 --disable-werror \
---with-lib-path=/tools/lib \		//编译时汇编库搜索目录
+--with-lib-path=/tools/lib \		//链接器库搜索目录
 --with-sysroot				//库搜索路径
 make
 make install
 rm -rf binutils-build
 rm -rf binutils-2.25
 
-7.gcc-4.9.2(目标系统编译)
+7.gcc-4.9.2(含Glibc的GCC)
 cd $LFS/sources
 tar -jxf gcc-4.9.2.tar.bz2
 cd gcc-4.9.2
@@ -190,12 +190,12 @@ CXX=$LFS_TGT-g++ \
 AR=$LFS_TGT-ar \
 RANLIB=$LFS_TGT-ranlib \
 ../gcc-4.9.2/configure \
---prefix=/tools \				//配置同上GCC
+--prefix=/tools \				//配置同上GCC,但需要Glibc的特性允许
 --with-local-prefix=/tools \
 --with-native-system-header-dir=/tools/include \
 --enable-languages=c,c++ \
 --disable-libstdcxx-pch \
---disable-multilib \
+--disable-multilib \				//x86_64不支持
 --disable-bootstrap \				//阻止gcc进行自我复制校验
 --disable-libgomp
 make

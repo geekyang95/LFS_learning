@@ -1,4 +1,5 @@
 #交叉编译工具链制作
+#由于LFS系统只是针对x86体系进行的版本，此处的交叉仅指不同系统的交叉，并非体系架构的交叉
 1.binutils-2.25(Gnu二进制工具集)
 cd $LFS/sources
 tar -jxf binutils-2.25.tar.bz2
@@ -44,7 +45,7 @@ for file in \				//确保gcc使用的是刚才由Binutils编译出的/tools中�
 	#define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
 	touch $file.orig
 	done
-sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure	//GCC栈保护，避免GLIBC编译出错
+sed -i '/k prot/agcc_cv_libc_provides_ssp=yes' gcc/configure	//GCC栈保护，避免GLIBC时编译出错
 mkdir -v ../gcc-build
 cd ../gcc-build
 ../gcc-4.9.2/configure \
@@ -71,7 +72,7 @@ cd ../gcc-build
 --disable-libstdc++-v3 \		//由于当前还没有编译系统库，而以上特性都需要libc的支持，因此去掉
 --enable-languages=c,c++		//只有C/C++会被构建
 make
-make install
+make install				//若是此时用该GCC进行编译，会报ld找不到crt1.o,crti.o的错，在glibc编译后，该GCC可以进行编译，因此crt1.o,crti.o应该是glibc而来，而不是gcc而来.
 rm -rf $LFS/sources/gcc-build
 rm -rf $LFS/sources/gcc-4.9.2
 
@@ -95,7 +96,7 @@ fi
 sed -e '/ia32/s/^/1:/' \
 -e '/SSE2/s/^1://' \
 -i sysdeps/i386/i686/multiarch/mempcpy_chk.S
-mkdir -v ../glibc-build
+mkdir -v ../glibc-build					//此处编译时并未指明CC等为之前编译的GCC恰好证明该glibc只是本机同架构的glibc,与开篇所说吻合
 cd ../glibc-build
 ../glibc-2.21/configure \
 --prefix=/tools \					//安装目录
@@ -144,7 +145,7 @@ tar -jxf binutils-2.25.tar.bz2
 cd binutils-2.25
 mkdir -v ../binutils-build
 cd ../binutils-build
-CC=$LFS_TGT-gcc \			//指定编译器为刚才编译的交叉编译工具
+CC=$LFS_TGT-gcc \			//指定编译器为刚才编译的交叉编译工具，此处的交叉从架构上来讲并无意义，真正的目的是将其lib进行严格的限定
 AR=$LFS_TGT-ar \			
 RANLIB=$LFS_TGT-ranlib \
 ../binutils-2.25/configure \
@@ -158,7 +159,7 @@ make install
 rm -rf binutils-build
 rm -rf binutils-2.25
 
-7.gcc-4.9.2(含Glibc的GCC)
+7.gcc-4.9.2(含Glibc的GCC)			//该GCC也是一个本架构GCC，只是其库路径限定与$LFS中，与宿主脱离
 cd $LFS/sources
 tar -jxf gcc-4.9.2.tar.bz2
 cd gcc-4.9.2
@@ -185,7 +186,7 @@ tar -xf ../mpc-1.0.2.tar.gz
 mv -v mpc-1.0.2 mpc
 mkdir -v ../gcc-build
 cd ../gcc-build
-CC=$LFS_TGT-gcc \				//编译器指定为交叉编译器
+CC=$LFS_TGT-gcc \				//编译器指定为交叉编译器，同无意义，理由见上
 CXX=$LFS_TGT-g++ \
 AR=$LFS_TGT-ar \
 RANLIB=$LFS_TGT-ranlib \
@@ -193,6 +194,7 @@ RANLIB=$LFS_TGT-ranlib \
 --prefix=/tools \				//配置同上GCC,但需要Glibc的特性允许
 --with-local-prefix=/tools \
 --with-native-system-header-dir=/tools/include \
+--with-sysroot=$LFS		\		//在一处邮件列表中发现的选项，该选项可以严格指定lib路径
 --enable-languages=c,c++ \
 --disable-libstdcxx-pch \
 --disable-multilib \				//x86_64不支持

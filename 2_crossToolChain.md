@@ -24,7 +24,7 @@
 	rm -rf $LFS/sources/binutils-build
 	rm -rf $LFS/sources/binutils-2.25
 
-2.2gcc-4.9.2(注意该gcc是不含Glibc的，因此不支持包含对系统调用的编译,仅用于内核和bootloader等不需系统调用的编译)
+2. 2gcc-4.9.2(注意该gcc是不含Glibc的，因此不支持包含对系统调用的编译,仅用于内核和bootloader等不需系统调用的编译)  
 	cd $LFS/sources
 	tar -jxf gcc-4.9.2.tar.bz2
 	cd gcc-4.9.2
@@ -116,7 +116,7 @@
 	rm -rf $LFS/sources/glibc-build
 	rm -rf $LFS/sources/glibc-2.21
 
-#####交叉编译环境检测
+>交叉编译环境检测
 	echo "main(){}">test.c
 	$LFS_TGT-gcc test.c
 	readelf -l a.out | grep ': /tools'

@@ -88,7 +88,7 @@
 	cp -rv dest/include/* /tools/include  
 	rm -rf $LFS/sources/linux-3.19  
 
->Glibc(GNU c运行库)  
+####Glibc(GNU c运行库)  
 	cd $LFS/sources  
 	tar -Jxf glibc-2.21.tar.xz  
 	cd glibc-2.21  
@@ -169,8 +169,8 @@
 	cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \		//完全体GCC编译，上次是不完全编译  
 	`dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/include-fixed/limits.h  
 	for file in \  
-	$(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
-do  
+		$(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h)
+	do  
 		cp -uv $file{,.orig}  
 		sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' \  
  		   -e 's@/usr@/tools@g' $file.orig > $file  

@@ -2,7 +2,7 @@
     
 ###由于LFS系统只是针对x86体系进行的版本，此处的交叉仅指不同系统的交叉，并非体系架构的交叉  
   
->binutils-2.25(Gnu二进制工具集)   
+####binutils-2.25(Gnu二进制工具集)   
 	cd $LFS/sources  
 	tar -jxf binutils-2.25.tar.bz2  
 	cd binutils-2.25  
@@ -24,7 +24,7 @@
 	rm -rf $LFS/sources/binutils-build  
 	rm -rf $LFS/sources/binutils-2.25  
 
->gcc-4.9.2(注意该gcc是不含Glibc的，因此不支持包含对系统调用的编译,仅用于内核和bootloader等不需系统调用的编译)  
+####gcc-4.9.2(注意该gcc是不含Glibc的，因此不支持包含对系统调用的编译,仅用于内核和bootloader等不需系统调用的编译)  
 	cd $LFS/sources  
 	tar -jxf gcc-4.9.2.tar.bz2  
 	cd gcc-4.9.2  
@@ -79,7 +79,7 @@
 	rm -rf $LFS/sources/gcc-build  
 	rm -rf $LFS/sources/gcc-4.9.2  
   
->linux API headers  
+####linux API headers  
 	cd $LFS/sources  
 	tar -Jxf linux-3.19.tar.xz  
 	cd linux-3.19  
@@ -116,13 +116,13 @@
 	rm -rf $LFS/sources/glibc-build  
 	rm -rf $LFS/sources/glibc-2.21  
   
-######交叉编译环境检测  
+#####交叉编译环境检测  
 	echo "main(){}">test.c  
 	$LFS_TGT-gcc test.c  
 	readelf -l a.out | grep ': /tools'  
 	结果应为：[Requesting program interpreter: /tools/lib/ld-linux.so.2]  
 
->libstdc++-4.9.2(c++运行库)  
+####libstdc++-4.9.2(c++运行库)  
 	cd $LFS/sources  
 	tar -jxf gcc-4.9.2.tar.bz2  
 	cd gcc-4.9.2  
@@ -142,7 +142,7 @@
 	rm -rf $LFS/sources/gcc-build  
 	rm -rf $LFS/sources/gcc-4.9.2  
 
->Binutils_2(第二次编译使其不依赖于宿主机系统)  
+####Binutils_2(第二次编译使其不依赖于宿主机系统)  
 	cd $LFS/sources  
 	tar -jxf binutils-2.25.tar.bz2  
 	cd binutils-2.25  
@@ -162,7 +162,7 @@
 	rm -rf binutils-build  
 	rm -rf binutils-2.25  
 
->gcc-4.9.2(含Glibc的GCC)			//该GCC也是一个本架构GCC，只是其库路径限定与$LFS中，与宿主脱离  
+####gcc-4.9.2(含Glibc的GCC)			//该GCC也是一个本架构GCC，只是其库路径限定与$LFS中，与宿主脱离  
 	cd $LFS/sources  
 	tar -jxf gcc-4.9.2.tar.bz2  
 	cd gcc-4.9.2  

@@ -1,31 +1,31 @@
 #环境检查  
   
 ###宿主机需要有以下工具:
-*bash 		
-*ld			//链接器 
-*bision			//语法分析器生成器 
-*yacc	(可为软链接)	//同bison,bison由yacc改进而来  
-*bzip2		  
-*chown		  	
-*diff		  	//文本内容比较器
-*find	
-*gawk	
-*awk	(可为软链接)	
-*gcc	(需要不支持C99版本)	
-*g++	
-*ldd			//动态依赖库查询	
-*grep			//文本查询工具	
-*gzip	
-*cat	
-*m4			//宏处理器	
-*make	
-*patch			//文件更改	
-*perl			
-*sed
-*tar
-*makeinfo		//Ubuntu下为texinfo
-*xz			//xz压缩处理
-*texinfo			//文档生成器
+* bash 		
+* ld			//链接器 
+* bision			//语法分析器生成器 
+* yacc	(可为软链接)	//同bison,bison由yacc改进而来  
+* bzip2		  
+* chown		  	
+* diff		  	//文本内容比较器
+* find	
+* gawk	
+* awk	(可为软链接)	
+* gcc	(需要不支持C99版本)	
+* g++	
+* ldd			//动态依赖库查询	
+* grep			//文本查询工具	
+* gzip	
+* cat	
+* m4			//宏处理器	
+* make	
+* patch			//文件更改	
+* perl			
+* sed
+* tar
+* makeinfo		//Ubuntu下为texinfo
+* xz			//xz压缩处理
+* texinfo			//文档生成器
 
 ###库文件一致性检查
 	#!/bin/bash
@@ -36,26 +36,26 @@
 	unset lib
 	运行以上脚本检查，应为都在或都不在
 
-##目标盘处理
+###目标盘处理
 	(不明白的参数man查看）
-1.创建新分区
-	fdisk 用法:man fdisk
-	若宿主系统存在swap分区可以公用
-2.文件系统创建
-	mkfs -v -t ext4 /dev/(your disk)
-	新创建的swap分区需要初始化
-	mkswap	/dev/(your swap)
-3.文件系统挂载
-	export LFS=/mnt/lfs	(一次做不完可以将其写入当前用户的~/.bashrc中，下次进入无需再次声明）
-	mkdir -pv $LFS	//挂载点
-	mount -v -t ext4 /dev/(your disk) $LFS
-	mkdir $LFS/boot	(如果创建了boot分区需要挂载，挂载方法同上)
-	mkdir $LFS/home (同上)
-	之前若无swap需要启用后来建立的swap
-	swapon on /dev/(your swap)
-4.相关软件包
-	mkdir -v $LFS/sources //创建源码存放地
-	以下链接可以置于一个文件之中，使用wget一次性下载
+1. 创建新分区  
+	fdisk 用法:man fdisk  
+	若宿主系统存在swap分区可以公用  
+2. 文件系统创建    
+	mkfs -v -t ext4 /dev/(your disk)  
+	新创建的swap分区需要初始化  
+	mkswap	/dev/(your swap)  
+3. 文件系统挂载  
+	export LFS=/mnt/lfs	(一次做不完可以将其写入当前用户的~/.bashrc中，下次进入无需再次声明）  
+	mkdir -pv $LFS	//挂载点  
+	mount -v -t ext4 /dev/(your disk) $LFS  
+	mkdir $LFS/boot	(如果创建了boot分区需要挂载，挂载方法同上)  
+	mkdir $LFS/home (同上)  
+	之前若无swap需要启用后来建立的swap  
+	swapon on /dev/(your swap)  
+4. 相关软件包  
+	mkdir -v $LFS/sources //创建源码存放地  
+	以下链接可以置于一个文件之中，使用wget一次性下载  
 	http://mirrors.ustc.edu.cn/lfs/lfs-packages/7.7-systemd/acl-2.2.52.src.tar.gz
 	http://mirrors.ustc.edu.cn/lfs/lfs-packages/7.7-systemd/attr-2.4.47.src.tar.gz
 	http://mirrors.ustc.edu.cn/lfs/lfs-packages/7.7-systemd/autoconf-2.69.tar.xz
